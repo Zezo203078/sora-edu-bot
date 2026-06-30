@@ -1,7 +1,7 @@
 from flask import Flask, request, jsonify, render_template
 from g4f.client import Client
 
-app = Flask(__name__, template_folder='.', static_folder='.', static_url_path='')
+app = Flask(__name__, template_folder='.', static_folder='.')
 
 # تشغيل عميل الذكاء الاصطناعي
 client = Client()
@@ -11,8 +11,8 @@ chat_histories = {}
 
 @app.route('/')
 def index():
-    return render_template('index.html')
-
+    return app.send_static_file('index.html')
+    
 @app.route('/ask', methods=['POST'])
 def ask():
     user_data = request.json
@@ -22,7 +22,7 @@ def ask():
     if not user_text.strip():
         return jsonify({"reply": "عذراً، هل يمكنك قول شيء لأستطيع مساعدتك؟"})
     
-    # تهيئة التعليمات الرسمية (وزارة التربية والتعليم)
+    # تهيئة التعليمات الرسمية لوزارة التربية والتعليم
     system_prompt = {
         "role": "system", 
         "content": (
@@ -36,14 +36,14 @@ def ask():
     if user_id not in chat_histories:
         chat_histories[user_id] = []
         
-    # إضافة رسالة المستخدم الجديدة ل السجل
+    # إضافة رسالة المستخدم الجديدة إلى السجل
     chat_histories[user_id].append({"role": "user", "content": user_text})
     
     # الحفاظ على آخر 6 رسائل فقط لضمان السرعة القصوى وعدم تهنيج السيرفر
     if len(chat_histories[user_id]) > 6:
         chat_histories[user_id] = chat_histories[user_id][-6:]
         
-    # ندمج الـ System Prompt دائماً في بداية الرسائل المرسلة للـ AI لضمان عدم نسيان الهوية الرسمية
+    # ندمج الـ System Prompt دائماً في بداية الرسائل المرسلة لـ AI لضمان عدم نسيان الهوية الرسمية
     messages_to_send = [system_prompt] + chat_histories[user_id]
         
     try:
@@ -63,4 +63,5 @@ def ask():
         
     return jsonify({"reply": reply})
 
+# هذا السطر تم تعديله خصيصاً ليتوافق مع خوادم Vercel ليعمل المشروع 24 ساعة
 app = app
